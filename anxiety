@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Anxiety in Adolescents | MCN Review | Pillitteri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .transition-all { transition: all 0.3s ease; }
+        .recall-mode .reveal-text {
+            background-color: #cbd5e1;
+            color: transparent;
+            border-radius: 0.375rem;
+            padding: 0 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            box-shadow: inset 0 0 0 1px #94a3b8;
+        }
+        .recall-mode .reveal-text:hover,
+        .recall-mode .reveal-text.revealed {
+            background-color: #fbcfe8;
+            color: #1e293b;
+            box-shadow: none;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #db2777; border-radius: 8px; }
+        .content-section { animation: fade 0.3s ease; }
+        @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .quiz-feedback-correct { background-color: #dcfce7; border-left: 4px solid #22c55e; }
+        .quiz-feedback-wrong { background-color: #fee2e2; border-left: 4px solid #ef4444; }
+        .locked-section { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+        .flashcard { background: #fff; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); transition: transform 0.2s; cursor: pointer; border: 1px solid #e2e8f0; }
+        .flashcard:hover { transform: translateY(-5px); }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { anxiety: { light: '#fce7f3', DEFAULT: '#db2777', dark: '#9d174d' } } } }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 h-screen flex flex-col md:flex-row font-sans text-slate-800 overflow-hidden">
+
+    <!-- Mobile Header -->
+    <div class="md:hidden bg-anxiety-dark text-white p-4 flex justify-between items-center shadow-md z-30 shrink-0">
+        <button onclick="toggleMobileMenu()" class="text-white focus:outline-none z-40">
+            <i class="fa-solid fa-bars text-2xl"></i>
+        </button>
+        <h1 class="font-bold text-lg absolute left-1/2 transform -translate-x-1/2 pointer-events-none">
+            <i class="fa-solid fa-brain mr-2"></i> Adolescent Anxiety
+        </h1>
+        <div class="w-8"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="hidden md:flex flex-col w-full md:w-80 bg-white shadow-2xl h-full absolute md:relative z-30 transition-transform duration-300 shrink-0 border-r border-slate-200">
+        <div class="p-6 bg-gradient-to-br from-anxiety-dark to-anxiety text-white hidden md:block shrink-0">
+            <h1 class="font-black text-2xl tracking-wide"><i class="fa-regular fa-hand-peace mr-2"></i> Adolescent Anxiety</h1>
+            <p class="text-sm text-pink-200 mt-1 font-medium">MCN · Pillitteri · Mental Health</p>
+        </div>
+        <div class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1 text-sm font-medium">
+                <li><button onclick="showSection('home')" id="btn-home" class="nav-btn w-full text-left px-6 py-3 bg-anxiety-light text-anxiety-dark border-r-4 border-anxiety-dark transition-colors"><i class="fa-solid fa-house w-6 nav-icon"></i><i class="fa-solid fa-lock w-6 hidden"></i> Home / Start</button></li>
+                <li><button onclick="showSection('overview')" id="btn-overview" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-book-open w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Overview & Epidemiology</button></li>
+                <li><button onclick="showSection('types')" id="btn-types" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-list w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Types of Anxiety Disorders</button></li>
+                <li><button onclick="showSection('clinical')" id="btn-clinical" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-stethoscope w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Clinical Features & Risk Factors</button></li>
+                <li><button onclick="showSection('screening')" id="btn-screening" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-microscope w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Screening & Diagnosis</button></li>
+                <li><button onclick="showSection('management')" id="btn-management" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-capsules w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Management (CBT, Medications)</button></li>
+                <li><button onclick="showSection('nursing')" id="btn-nursing" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-user-nurse w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Nursing Care & Interventions</button></li>
+                <li><button onclick="showSection('prevention')" id="btn-prevention" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-shield-heart w-6 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Prevention & Coping Strategies</button></li>
+                <li><button onclick="showSection('flashcards')" id="btn-flashcards" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors border-t border-slate-200 mt-2 locked-section"><i class="fa-solid fa-cards w-6 text-anxiety nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Flashcards & Mnemonics</button></li>
+                <li><button onclick="showSection('final_quiz_sec')" id="btn-final_quiz_sec" class="nav-btn w-full text-left px-6 py-3 text-slate-700 hover:bg-slate-50 transition-colors locked-section"><i class="fa-solid fa-graduation-cap w-6 text-amber-500 nav-icon hidden"></i><i class="fa-solid fa-lock w-6 text-slate-400"></i> Final 50‑Item Exam</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="flex-1 h-full overflow-y-auto bg-slate-100 relative w-full">
+        <div class="fixed top-16 md:top-4 right-4 md:right-8 z-40 flex items-center bg-white/90 backdrop-blur px-4 py-3 rounded-full shadow-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors" onclick="toggleRecallMode()">
+            <span class="mr-3 text-sm font-bold text-slate-700 hidden md:inline"><i class="fa-solid fa-brain text-anxiety mr-1"></i> Active Recall</span>
+            <button id="recall-toggle" class="w-12 h-6 bg-slate-300 rounded-full relative transition-colors duration-300 focus:outline-none shadow-inner pointer-events-none">
+                <div id="recall-knob" class="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform duration-300 shadow"></div>
+            </button>
+        </div>
+
+        <div class="p-4 md:p-8 max-w-6xl mx-auto pb-32">
+            <!-- HOME SECTION -->
+            <section id="home" class="content-section flex flex-col items-center justify-center min-h-[80vh] text-center block">
+                <div class="bg-gradient-to-br from-slate-800 to-anxiety-dark text-white rounded-3xl shadow-2xl p-10 md:p-16 w-full relative overflow-hidden">
+                    <div class="absolute top-0 right-0 -mt-10 -mr-10 text-white opacity-5 pointer-events-none"><i class="fa-solid fa-face-frown text-[20rem]"></i></div>
+                    <div class="relative z-10">
+                        <div class="bg-white/10 backdrop-blur-sm inline-block p-4 rounded-full text-pink-300 mb-6 shadow-sm border border-white/20">
+                            <i class="fa-solid fa-book-open text-5xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-300 mb-2 uppercase tracking-widest">Maternal & Child Health Nursing</h3>
+                        <h1 class="text-4xl md:text-6xl font-black text-white mb-6 leading-tight drop-shadow-md">Anxiety in Adolescents</h1>
+                        <div class="bg-white/10 backdrop-blur inline-block px-6 py-3 rounded-full mb-10 border border-white/20">
+                            <p class="text-lg text-white font-medium">DSM‑5 Types · Screening · CBT · Nursing Care | <strong>Adele Pillitteri, 7e</strong></p>
+                        </div>
+                        <button onclick="unlockFirstSection()" class="bg-slate-600 hover:bg-slate-500 text-white font-black py-4 px-10 rounded-full shadow-xl transition-transform hover:scale-105 text-lg flex items-center mx-auto focus:outline-none">
+                            Begin Module <i class="fa-solid fa-arrow-right ml-3"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1. OVERVIEW & EPIDEMIOLOGY -->
+            <section id="overview" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-anxiety pb-3"><i class="fa-solid fa-book-open text-anxiety mr-4"></i> Overview & Epidemiology</h2>
+                    <p><strong>Anxiety disorders</strong> are the most common mental health conditions in adolescents, characterized by excessive fear or worry that interferes with daily functioning. Globally, ~1 in 7 adolescents (10‑19 years) experience a mental health condition, with anxiety disorders accounting for a large proportion. In the Philippines, prevalence of anxiety symptoms among adolescents is estimated at 5‑10%, with higher rates during the COVID‑19 pandemic.</p>
+                    <div class="grid md:grid-cols-2 gap-5 mt-4">
+                        <div class="bg-slate-50 p-4 rounded-xl"><strong>📊 Key Statistics</strong><br><span class="reveal-text">• Anxiety disorders affect ~31.9% of adolescents (lifetime prevalence).<br>• Median age of onset: 11 years.<br>• Girls are 1.5‑2× more likely to develop anxiety than boys.<br>• Only 20‑30% receive treatment.</span><br><span class="text-xs text-slate-500">Sources: NIMH, WHO, DOH</span></div>
+                        <div class="bg-slate-50 p-4 rounded-xl"><strong>🎯 Importance of Early Intervention</strong><br><span class="reveal-text">Untreated anxiety leads to academic underachievement, social isolation, substance abuse, and increased risk of depression and suicide. Early detection and treatment improve outcomes.</span></div>
+                    </div>
+                    <canvas id="anxietyChart" width="400" height="200" style="max-width:100%; margin-top:1rem;"></canvas>
+                    <div class="bg-amber-50 p-3 rounded-lg mt-4"><strong>⚠️ Key point:</strong> <span class="reveal-text">Adolescence is a critical period for onset of anxiety disorders; screening should be routine in primary care.</span></div>
+                    <button onclick="openQuiz('overview')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- 2. TYPES OF ANXIETY DISORDERS (DSM‑5) -->
+            <section id="types" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-anxiety pb-3"><i class="fa-solid fa-list text-anxiety mr-4"></i> Types of Anxiety Disorders (DSM‑5)</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse border">
+                            <thead class="bg-anxiety text-white"><tr><th class="p-2">Disorder</th><th class="p-2">Description</th><th class="p-2">Key Features</th></tr></thead>
+                            <tbody>
+                                <tr><td class="border p-2 font-bold">Generalized Anxiety Disorder (GAD) </td><td class="reveal-text">Excessive worry about various events for ≥6 months</td><td class="reveal-text">Restlessness, fatigue, difficulty concentrating, muscle tension, sleep disturbance</td></tr>
+                                <tr class="bg-slate-50"><td class="border p-2 font-bold">Social Anxiety Disorder (SAD)</td><td class="reveal-text">Marked fear of social situations where one may be scrutinized</td><td class="reveal-text">Avoidance of social interactions, fear of embarrassment, physical symptoms (blushing, sweating)</td></tr>
+                                <tr><td class="border p-2 font-bold">Panic Disorder</td><td class="reveal-text">Recurrent unexpected panic attacks</td><td class="reveal-text">Palpitations, sweating, trembling, shortness of breath, fear of dying or losing control</td></tr>
+                                <tr class="bg-slate-50"><td class="border p-2 font-bold">Separation Anxiety Disorder</td><td class="reveal-text">Developmentally inappropriate fear of separation from attachment figures</td><td class="reveal-text">Distress when separated, worry about harm to loved ones, school refusal, nightmares</td></tr>
+                                <tr><td class="border p-2 font-bold">Specific Phobia</td><td class="reveal-text">Intense fear of a specific object or situation (e.g., animals, heights, blood)</td><td class="reveal-text">Immediate anxiety upon exposure, avoidance, significant distress or impairment</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-indigo-50 p-3 rounded-lg mt-4"><i class="fa-regular fa-message"></i> <strong>Mnemonic:</strong> “GAD, SAD, Panic, Separation, Phobia” – common adolescent anxiety disorders.</div>
+                    <button onclick="openQuiz('types')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- 3. CLINICAL FEATURES & RISK FACTORS -->
+            <section id="clinical" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-anxiety pb-3"><i class="fa-solid fa-stethoscope text-anxiety mr-4"></i> Clinical Features & Risk Factors</h2>
+                    <div class="grid md:grid-cols-2 gap-5">
+                        <div class="bg-red-50 p-4 rounded-xl"><strong>🩸 Physical Symptoms</strong><br><span class="reveal-text">• Palpitations, sweating, trembling<br>• Shortness of breath, chest tightness<br>• Nausea, abdominal distress<br>• Dizziness, lightheadedness<br>• Muscle tension, headaches</span></div>
+                        <div class="bg-blue-50 p-4 rounded-xl"><strong>🧠 Cognitive/Emotional Symptoms</strong><br><span class="reveal-text">• Excessive worry, rumination<br>• Difficulty concentrating<br>• Irritability, restlessness<br>• Fear of losing control or dying<br>• Avoidance of feared situations</span></div>
+                        <div class="bg-amber-50 p-4 rounded-xl"><strong>⚠️ Risk Factors</strong><br><span class="reveal-text">• Genetics (family history)<br>• Temperament (behavioral inhibition)<br>• Trauma or stressful life events<br>• Parental overprotection or criticism<br>• Peer victimization, bullying<br>• Chronic illness, academic pressure</span></div>
+                        <div class="bg-green-50 p-4 rounded-xl"><strong>📋 Red Flags for Referral</strong><br><span class="reveal-text">• Refusal to attend school for >2 weeks<br>• Self‑harm, suicidal ideation<br>• Severe weight loss (avoidant/restrictive intake)<br>• Functional impairment (cannot leave home)<br>• Symptoms lasting >6 months</span></div>
+                    </div>
+                    <button onclick="openQuiz('clinical')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- 4. SCREENING & DIAGNOSIS -->
+            <section id="screening" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-anxiety pb-3"><i class="fa-solid fa-microscope text-anxiety mr-4"></i> Screening & Diagnosis</h2>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>GAD‑7 (Generalized Anxiety Disorder‑7):</strong> <span class="reveal-text">7‑item self‑report scale for GAD; score ≥10 indicates moderate anxiety.</span></li>
+                        <li><strong>SCARED (Screen for Child Anxiety Related Emotional Disorders):</strong> <span class="reveal-text">Validated for children/adolescents; screens for panic, GAD, separation anxiety, social anxiety, school avoidance.</span></li>
+                        <li><strong>Clinical interview:</strong> <span class="reveal-text">Based on DSM‑5 criteria; rule out medical causes (hyperthyroidism, cardiac arrhythmias, caffeine/substance use).</span></li>
+                        <li><strong>Physical exam & labs:</strong> <span class="reveal-text">TSH, CBC, glucose, drug screen if indicated.</span></li>
+                    </ul>
+                    <div class="bg-blue-50 p-3 rounded-lg mt-4"><i class="fa-regular fa-flask"></i> <strong>GAD‑7 scoring:</strong> <span class="reveal-text">0‑4 minimal, 5‑9 mild, 10‑14 moderate, 15‑21 severe anxiety.</span></div>
+                    <button onclick="openQuiz('screening')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- 5. MANAGEMENT (CBT, MEDICATIONS) -->
+            <section id="management" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-anxiety pb-3"><i class="fa-solid fa-capsules text-anxiety mr-4"></i> Management (CBT, Medications)</h2>
+                    <div class="grid md:grid-cols-2 gap-5">
+                        <div><strong>🧩 Psychotherapy (First‑line)</strong><br><span class="reveal-text">• Cognitive‑Behavioral Therapy (CBT) – most evidence‑based<br>• Exposure therapy for phobias<br>• Acceptance and Commitment Therapy (ACT)<br>• Interpersonal therapy for social anxiety</span></div>
+                        <div><strong>💊 Pharmacotherapy (Second‑line or adjunct)</strong><br><span class="reveal-text">• SSRIs (fluoxetine, sertraline, escitalopram) – FDA‑approved<br>• SNRIs (venlafaxine, duloxetine)<br>• Benzodiazepines (short‑term only, risk of dependence)<br>• Buspirone for GAD</span></div>
+                    </div>
+                    <div class="bg-amber-50 p-3 rounded-lg mt-4"><i class="fa-regular fa-clock"></i> <strong>SSRI warning:</strong> <span class="reveal-text">Black box warning for increased suicidal ideation in young adults; monitor closely during first weeks of treatment.</span></div>
+                    <button onclick="openQuiz('management')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- 6. NURSING CARE & INTERVENTIONS -->
+            <section id="nursing" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-anxiety pb-3"><i class="fa-solid fa-user-nurse text-anxiety mr-4"></i> Nursing Care & Interventions</h2>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Therapeutic communication:</strong> <span class="reveal-text">Use active listening, open‑ended questions, validate feelings. Avoid reassurance (e.g., “Don’t worry”).</span></li>
+                        <li><strong>Relaxation techniques:</strong> <span class="reveal-text">Teach deep breathing, progressive muscle relaxation, guided imagery, mindfulness.</span></li>
+                        <li><strong>Safety:</strong> <span class="reveal-text">Assess for suicidal ideation, self‑harm, and protective factors. Provide safe environment.</span></li>
+                        <li><strong>Health education:</strong> <span class="reveal-text">Explain anxiety as a treatable condition. Educate about medication adherence, side effects, and importance of therapy.</span></li>
+                        <li><strong>School support:</strong> <span class="reveal-text">Collaborate with school counselor; implement 504 plan or IEP if needed.</span></li>
+                    </ul>
+                    <div class="bg-pink-50 p-3 rounded-lg mt-4"><i class="fa-regular fa-heart"></i> <strong>Mnemonic “B.R.E.A.T.H.E.”</strong> – Breathing, Relaxation, Empathy, Assessment, Teaching, Hope, Education.</div>
+                    <button onclick="openQuiz('nursing')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- 7. PREVENTION & COPING STRATEGIES -->
+            <section id="prevention" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-anxiety pb-3"><i class="fa-solid fa-shield-heart text-anxiety mr-4"></i> Prevention & Coping Strategies</h2>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Universal prevention:</strong> <span class="reveal-text">School‑based programs teaching coping skills, resilience, emotional regulation.</span></li>
+                        <li><strong>Targeted prevention:</strong> <span class="reveal-text">Interventions for high‑risk adolescents (children of anxious parents, bullying victims).</span></li>
+                        <li><strong>Lifestyle factors:</strong> <span class="reveal-text">Regular physical activity, adequate sleep, balanced diet, limiting caffeine and screen time.</span></li>
+                        <li><strong>Parental involvement:</strong> <span class="reveal-text">Reduce criticism, encourage autonomy, model healthy coping.</span></li>
+                    </ul>
+                    <div class="bg-green-50 p-3 rounded-lg mt-4"><i class="fa-regular fa-lightbulb"></i> <strong>Mnemonic “C.O.P.E.”</strong> – Coping skills, Open communication, Physical activity, Education.</div>
+                    <button onclick="openQuiz('prevention')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Next</button>
+                </div>
+            </section>
+
+            <!-- 8. FLASHCARDS & MNEMONICS -->
+            <section id="flashcards" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-3xl font-black text-slate-800 mb-4 border-b-2 border-anxiety pb-3"><i class="fa-solid fa-cards text-anxiety mr-4"></i> Flashcards & Mnemonics</h2>
+                    <div class="grid md:grid-cols-2 gap-5">
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-anxiety">Q: What is the first‑line psychotherapy for adolescent anxiety?</div><div class="flash-answer hidden mt-2">Cognitive‑Behavioral Therapy (CBT)</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-anxiety">Q: Which SSRI is FDA‑approved for pediatric anxiety?</div><div class="flash-answer hidden mt-2">Fluoxetine, sertraline, escitalopram</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-anxiety">Q: GAD‑7 score indicating moderate anxiety?</div><div class="flash-answer hidden mt-2">10–14</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-anxiety">Q: Most common anxiety disorder in adolescents?</div><div class="flash-answer hidden mt-2">Social Anxiety Disorder</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-anxiety">Q: Screening tool for childhood anxiety disorders?</div><div class="flash-answer hidden mt-2">SCARED (Screen for Child Anxiety Related Emotional Disorders)</div></div>
+                        <div class="flashcard p-4" onclick="toggleFlash(this)"><div class="font-bold text-anxiety">Q: First‑line pharmacotherapy for GAD in adolescents?</div><div class="flash-answer hidden mt-2">SSRI (e.g., sertraline, fluoxetine)</div></div>
+                    </div>
+                    <div class="mt-6 bg-pink-50 p-4 rounded-xl"><strong>🧠 Mnemonics</strong><br><span class="reveal-text">“GAD, SAD, Panic, Separation, Phobia” – Types of anxiety disorders.<br>“B.R.E.A.T.H.E.” – Nursing interventions: Breathing, Relaxation, Empathy, Assessment, Teaching, Hope, Education.<br>“C.O.P.E.” – Prevention strategies: Coping skills, Open communication, Physical activity, Education.<br>“S.S.R.I.” – Sertraline, Sertraline, Fluoxetine, Escitalopram (common SSRIs for anxiety).</span></div>
+                    <button onclick="openQuiz('flashcards')" class="mt-6 w-full bg-slate-800 text-white font-black py-3 rounded-xl">Take Quiz → Unlock Final Exam</button>
+                </div>
+            </section>
+
+            <!-- FINAL EXAM SECTION -->
+            <section id="final_quiz_sec" class="content-section hidden">
+                <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 text-center min-h-[60vh] flex flex-col justify-center items-center">
+                    <i class="fa-solid fa-graduation-cap text-8xl text-amber-500 mb-6"></i>
+                    <h2 class="text-4xl font-black text-slate-800 mb-4">Final 50‑Item Exam: Adolescent Anxiety</h2>
+                    <p class="text-lg text-slate-600 mb-8 max-w-2xl">Covers epidemiology, types, clinical features, screening, management, nursing care, prevention, and mnemonics. Score ≥75% to pass.</p>
+                    <button onclick="openQuiz('final_quiz')" class="w-full max-w-md bg-slate-800 text-white font-black py-4 rounded-xl shadow-md text-xl">Start Final Exam</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- QUIZ MODAL -->
+    <div id="quiz-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 md:p-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeQuiz()" class="absolute top-4 right-4 text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <h2 id="quiz-title" class="text-3xl font-black text-slate-800 mb-2"></h2>
+            <div id="quiz-questions-container" class="space-y-4 mt-4"></div>
+            <button id="quiz-submit-btn" onclick="submitQuiz()" class="mt-8 w-full bg-anxiety text-white font-bold py-4 rounded-xl shadow-lg">Submit Answers</button>
+            <div id="quiz-result-container" class="hidden mt-6 p-4 rounded-xl bg-slate-100"></div>
+        </div>
+    </div>
+
+    <script>
+        let unlockedSections = ['home'];
+        // QUIZZES (10 questions each)
+        const quizzes = {
+            overview: { title: "Overview & Epidemiology", next: "types", questions: [
+                { q: "Anxiety disorders affect approximately what percentage of adolescents globally?", options: ["5%", "15%", "31.9% (lifetime)", "50%"], ans: 2 },
+                { q: "Median age of onset for anxiety disorders is:", options: ["6 years", "11 years", "15 years", "18 years"], ans: 1 },
+                { q: "Which gender has a higher prevalence of anxiety in adolescence?", options: ["Male", "Female (1.5‑2×)", "Equal", "Depends on culture"], ans: 1 },
+                { q: "Approximately what percentage of adolescents with anxiety receive treatment?", options: ["10%", "20‑30%", "50%", "80%"], ans: 1 },
+                { q: "In the Philippines, anxiety symptoms among adolescents increased during:", options: ["Economic crisis", "COVID‑19 pandemic", "Natural disasters", "Election period"], ans: 1 },
+                { q: "Untreated anxiety in adolescents is associated with:", options: ["Depression, substance abuse, suicide", "Better academic performance", "Increased social skills", "Physical growth"], ans: 0 },
+                { q: "Routine screening for anxiety in adolescents is recommended by:", options: ["AAP (American Academy of Pediatrics)", "WHO only", "DOH only", "No guidelines"], ans: 0 },
+                { q: "The prevalence of anxiety disorders is highest among:", options: ["Children <10", "Adolescents", "Young adults", "Elderly"], ans: 1 },
+                { q: "One barrier to treatment for adolescent anxiety is:", options: ["Stigma, lack of access, unawareness", "Too many providers", "Overdiagnosis", "No effective treatments"], ans: 0 },
+                { q: "Anxiety disorders are the ___ most common mental health condition in adolescents.", options: ["First", "Second", "Third", "Fourth"], ans: 0 }
+            ]},
+            types: { title: "Types of Anxiety Disorders", next: "clinical", questions: [
+                { q: "Excessive worry about various events for ≥6 months describes:", options: ["Social anxiety", "GAD", "Panic disorder", "Separation anxiety"], ans: 1 },
+                { q: "Fear of social situations where one may be scrutinized is:", options: ["Specific phobia", "Social anxiety disorder", "Panic disorder", "GAD"], ans: 1 },
+                { q: "Recurrent unexpected panic attacks are characteristic of:", options: ["Panic disorder", "Agoraphobia", "GAD", "Separation anxiety"], ans: 0 },
+                { q: "School refusal is commonly associated with:", options: ["Separation anxiety disorder", "Specific phobia", "GAD", "Panic disorder"], ans: 0 },
+                { q: "Intense fear of needles or blood is a:", options: ["Social anxiety", "Specific phobia", "Panic disorder", "OCD"], ans: 1 },
+                { q: "Which disorder involves fear of embarrassment in front of peers?", options: ["GAD", "Social anxiety", "Panic disorder", "Separation anxiety"], ans: 1 },
+                { q: "The mnemonic for common adolescent anxiety disorders is:", options: ["GAD, SAD, Panic, Separation, Phobia", "OCD, PTSD, ADHD", "MDD, BPD, DMDD", "None"], ans: 0 },
+                { q: "A 15‑year‑old avoids eating in the school cafeteria due to fear of choking in front of others. Most likely diagnosis:", options: ["Social anxiety disorder", "GAD", "Panic disorder", "Specific phobia"], ans: 0 },
+                { q: "DSM‑5 criteria for GAD require symptoms for at least:", options: ["2 weeks", "1 month", "6 months", "12 months"], ans: 2 },
+                { q: "Separation anxiety disorder is considered developmentally appropriate only if it persists beyond:", options: ["Age 4", "Age 6", "Age 10", "Adolescence"], ans: 1 }
+            ]},
+            clinical: { title: "Clinical Features & Risk Factors", next: "screening", questions: [
+                { q: "A common physical symptom of anxiety in adolescents is:", options: ["Palpitations, sweating, trembling", "Fever", "Rash", "Polyuria"], ans: 0 },
+                { q: "Which cognitive symptom is typical of anxiety?", options: ["Excessive worry", "Hallucinations", "Delusions", "Amnesia"], ans: 0 },
+                { q: "Genetic risk factor for anxiety includes:", options: ["Family history of anxiety", "Low birth weight", "Maternal age", "Birth order"], ans: 0 },
+                { q: "Behavioral inhibition in childhood is a predictor of:", options: ["Later anxiety disorders", "Asthma", "ADHD", "Autism"], ans: 0 },
+                { q: "A red flag for referral is school refusal lasting:", options: [">2 days", ">1 week", ">2 weeks", ">1 month"], ans: 2 },
+                { q: "Which environmental factor increases anxiety risk?", options: ["Parental criticism, peer bullying", "High socioeconomic status", "Two‑parent household", "Rural living"], ans: 0 },
+                { q: "A teenager reports difficulty concentrating, irritability, and muscle tension. These are features of:", options: ["GAD", "Social anxiety", "Panic disorder", "Separation anxiety"], ans: 0 },
+                { q: "The hallmark of a panic attack is:", options: ["Sudden intense fear with physical symptoms", "Chronic worry", "Avoidance of social situations", "Fear of separation"], ans: 0 },
+                { q: "Suicidal ideation in an anxious adolescent requires:", options: ["Immediate mental health evaluation", "Reassurance only", "Discharge home", "Wait and see"], ans: 0 },
+                { q: "Which of the following is NOT a risk factor for adolescent anxiety?", options: ["Family history", "Chronic illness", "High self‑esteem", "Peer victimization"], ans: 2 }
+            ]},
+            screening: { title: "Screening & Diagnosis", next: "management", questions: [
+                { q: "GAD‑7 is a screening tool for:", options: ["Generalized anxiety", "Social anxiety", "Panic disorder", "Depression"], ans: 0 },
+                { q: "A GAD‑7 score of 12 indicates:", options: ["Minimal anxiety", "Mild anxiety", "Moderate anxiety", "Severe anxiety"], ans: 2 },
+                { q: "SCARED is used to screen for:", options: ["Childhood anxiety disorders", "Depression", "ADHD", "Autism"], ans: 0 },
+                { q: "Before diagnosing an anxiety disorder, it is important to rule out:", options: ["Hyperthyroidism, cardiac conditions", "Only depression", "Only ADHD", "Learning disability"], ans: 0 },
+                { q: "A positive screen for anxiety should be followed by:", options: ["Comprehensive clinical interview", "Immediate medication", "Reassurance only", "Observation for 6 months"], ans: 0 },
+                { q: "The GAD‑7 asks about symptoms over the past:", options: ["1 week", "2 weeks", "4 weeks", "6 months"], ans: 1 },
+                { q: "Which medical condition can mimic anxiety symptoms?", options: ["Hyperthyroidism, arrhythmia, caffeine intoxication", "Influenza", "Fracture", "UTI"], ans: 0 },
+                { q: "The SCARED questionnaire has how many items?", options: ["41", "7", "10", "21"], ans: 0 },
+                { q: "Which laboratory test is helpful to rule out thyroid disorder?", options: ["TSH", "CBC", "BMP", "LFT"], ans: 0 },
+                { q: "A 14‑year‑old with GAD‑7 score 16 has:", options: ["Severe anxiety", "Mild anxiety", "Normal", "No anxiety"], ans: 0 }
+            ]},
+            management: { title: "Management (CBT, Medications)", next: "nursing", questions: [
+                { q: "First‑line psychotherapy for adolescent anxiety is:", options: ["CBT", "Psychoanalysis", "Family therapy", "Art therapy"], ans: 0 },
+                { q: "Which SSRI is FDA‑approved for pediatric anxiety?", options: ["Fluoxetine", "Paroxetine", "Citalopram", "Escitalopram"], ans: 3 },
+                { q: "Black box warning for SSRIs in young adults includes risk of:", options: ["Suicidal ideation", "Weight gain", "Hypertension", "Diabetes"], ans: 0 },
+                { q: "Benzodiazepines are generally used in adolescents for anxiety:", options: ["Short‑term only, due to dependence risk", "First‑line", "Long‑term", "Never"], ans: 0 },
+                { q: "A common exposure therapy technique for phobias is:", options: ["Systematic desensitization", "Free association", "Dream analysis", "Hypnosis"], ans: 0 },
+                { q: "For mild to moderate anxiety, initial treatment is usually:", options: ["CBT alone", "Medication alone", "CBT + medication", "Hospitalization"], ans: 0 },
+                { q: "Which SNRI is used for anxiety in adolescents?", options: ["Venlafaxine", "Duloxetine", "Both", "None"], ans: 2 },
+                { q: "Cognitive restructuring in CBT helps the adolescent:", options: ["Identify and modify irrational thoughts", "Relax muscles", "Improve sleep", "Increase medication adherence"], ans: 0 },
+                { q: "The nurse should instruct the adolescent starting an SSRI that therapeutic effect may take:", options: ["2‑4 weeks", "24 hours", "1 week", "6 months"], ans: 0 },
+                { q: "Which medication is FDA‑approved for pediatric GAD?", options: ["Sertraline", "Fluoxetine", "Duloxetine", "Buspirone"], ans: 2 }
+            ]},
+            nursing: { title: "Nursing Care & Interventions", next: "prevention", questions: [
+                { q: "Therapeutic communication for an anxious adolescent includes:", options: ["Active listening, open‑ended questions, validation", "Advising ‘Don’t worry’", "Telling them to calm down", "Ignoring their concerns"], ans: 0 },
+                { q: "A relaxation technique taught by nurses is:", options: ["Deep breathing, progressive muscle relaxation", "Valsalva maneuver", "Cold exposure", "Caffeine intake"], ans: 0 },
+                { q: "The mnemonic ‘B.R.E.A.T.H.E.’ includes all EXCEPT:", options: ["Breathing", "Relaxation", "Medication prescription", "Education"], ans: 2 },
+                { q: "When an adolescent reports suicidal thoughts, the nurse should first:", options: ["Assess intent and plan, ensure safety", "Ignore", "Send home", "Call parents only"], ans: 0 },
+                { q: "School‑based support for an anxious adolescent may include:", options: ["504 plan, counseling, reduced workload", "Expulsion", "Isolation", "Increased homework"], ans: 0 },
+                { q: "The nurse should teach the adolescent about medication:", options: ["Adherence, side effects, do not stop abruptly", "Only take when anxious", "Double dose if missed", "Share with friends"], ans: 0 },
+                { q: "Which of the following is NOT a nursing intervention for anxiety?", options: ["Encourage avoidance of feared situations", "Teach coping skills", "Promote sleep hygiene", "Refer to CBT therapist"], ans: 0 },
+                { q: "To reduce physiological arousal, the nurse can guide the adolescent in:", options: ["Progressive muscle relaxation", "Increased caffeine", "Rapid breathing", "Isometric exercises"], ans: 0 },
+                { q: "A 16‑year‑old refuses to attend school due to social anxiety. The nurse should:", options: ["Collaborate with school counselor for gradual exposure", "Force attendance", "Recommend home schooling", "Ignore"], ans: 0 },
+                { q: "Which statement by a nurse is most therapeutic?", options: ["‘I hear that you feel scared. Many teens feel that way, and we can work on coping skills together.’", "‘You shouldn’t worry, it’s nothing.’", "‘Just relax.’", "‘You’re overreacting.’"], ans: 0 }
+            ]},
+            prevention: { title: "Prevention & Coping Strategies", next: "flashcards", questions: [
+                { q: "Universal prevention for anxiety includes:", options: ["School‑based resilience programs", "Only medication", "Individual therapy for all", "Hospitalization"], ans: 0 },
+                { q: "Lifestyle factor that reduces anxiety risk:", options: ["Regular exercise, adequate sleep, balanced diet", "High caffeine intake", "Sedentary lifestyle", "Late‑night screen time"], ans: 0 },
+                { q: "The mnemonic ‘C.O.P.E.’ stands for:", options: ["Coping skills, Open communication, Physical activity, Education", "Counsel, Observe, Prevent, Evaluate", "Care, Offer, Prepare, Engage", "None"], ans: 0 },
+                { q: "Parental strategies to prevent anxiety include:", options: ["Reduce criticism, encourage autonomy, model healthy coping", "Overprotect", "Criticize openly", "Ignore emotions"], ans: 0 },
+                { q: "Which of the following is a targeted prevention intervention?", options: ["Interventions for children of anxious parents", "School‑wide assemblies", "Mass media campaigns", "Universal vaccination"], ans: 0 },
+                { q: "Reducing screen time and social media exposure may help because:", options: ["Social comparison and cyberbullying increase anxiety", "Screens cause direct anxiety", "No effect", "Only sleep is affected"], ans: 0 },
+                { q: "A coping skill for panic attacks is:", options: ["Grounding technique (5‑4‑3‑2‑1)", "Holding breath", "Running away", "Screaming"], ans: 0 },
+                { q: "Teaching adolescents to challenge irrational thoughts is an example of:", options: ["Cognitive restructuring (CBT)", "Pharmacotherapy", "Systematic desensitization", "Aversion therapy"], ans: 0 },
+                { q: "Which activity is recommended for anxiety prevention?", options: ["Yoga, mindfulness, team sports", "Excessive gaming", "Isolation", "Caffeine consumption"], ans: 0 },
+                { q: "The single most important protective factor for adolescent mental health is:", options: ["Strong relationship with a caring adult", "High IQ", "Wealth", "Physical fitness"], ans: 0 }
+            ]},
+            flashcards: { title: "Flashcards & Mnemonics", next: "final_quiz_sec", questions: [
+                { q: "The mnemonic for types of anxiety disorders is:", options: ["GAD, SAD, Panic, Separation, Phobia", "B.R.E.A.T.H.E.", "C.O.P.E.", "S.S.R.I."], ans: 0 },
+                { q: "In ‘B.R.E.A.T.H.E.’, the first ‘E’ stands for:", options: ["Empathy", "Education", "Exercise", "Exposure"], ans: 0 },
+                { q: "The mnemonic for prevention is:", options: ["C.O.P.E.", "B.R.E.A.T.H.E.", "GAD‑7", "SCARED"], ans: 0 },
+                { q: "In C.O.P.E., ‘O’ stands for:", options: ["Open communication", "Observe", "Offer", "Order"], ans: 0 },
+                { q: "GAD‑7 is a screening tool for:", options: ["Generalized anxiety", "Depression", "Panic", "Social anxiety"], ans: 0 },
+                { q: "SCARED is used to screen for:", options: ["Childhood anxiety disorders", "ADHD", "Autism", "Learning disabilities"], ans: 0 },
+                { q: "A flashcard for ‘first‑line psychotherapy’ answer is:", options: ["CBT", "Medication", "ECT", "Hypnosis"], ans: 0 },
+                { q: "A flashcard for ‘SSRI warning’ answer is:", options: ["Increased suicidal ideation (black box)", "Weight loss", "Hypertension", "Diabetes"], ans: 0 },
+                { q: "A flashcard for ‘GAD‑7 moderate anxiety score’ answer is:", options: ["10‑14", "0‑4", "5‑9", "15‑21"], ans: 0 },
+                { q: "A flashcard for ‘common physical symptom of panic’ answer is:", options: ["Palpitations, sweating, trembling", "Fever", "Rash", "Polyuria"], ans: 0 }
+            ]}
+        };
+        // Build final 50-item exam
+        let finalQ = [];
+        for(let sec of ['overview','types','clinical','screening','management','nursing','prevention','flashcards']) {
+            finalQ.push(...quizzes[sec].questions.slice(0,6));
+        }
+        while(finalQ.length < 50) finalQ.push({ q: "The most effective intervention for moderate adolescent anxiety is:", options: ["Cognitive‑Behavioral Therapy (CBT)", "Benzodiazepines alone", "Reassurance", "School avoidance"], ans: 0 });
+        quizzes.final_quiz = { title: "Final 50‑Item Exam: Adolescent Anxiety", next: null, questions: finalQ };
+
+        let currentQuiz = null;
+        let anxietyChart = null;
+
+        function initAnxietyChart() {
+            const ctx = document.getElementById('anxietyChart')?.getContext('2d');
+            if(ctx && !anxietyChart) {
+                anxietyChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Lifetime prevalence', '12‑month prevalence', 'Treatment rate'],
+                        datasets: [{ label: 'Percentage (%)', data: [31.9, 19.3, 25], backgroundColor: '#db2777', borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+                });
+            }
+        }
+
+        function toggleFlash(el) { const ans = el.querySelector('.flash-answer'); if(ans) ans.classList.toggle('hidden'); }
+        function unlockFirstSection() { if(!unlockedSections.includes('overview')) { unlockedSections.push('overview'); updateSidebarUI(); } showSection('overview'); }
+        function showSection(sectionId) {
+            if (!unlockedSections.includes(sectionId) && sectionId !== 'home') { alert("Complete the Active Recall Quiz at the bottom of the previous section to unlock."); return; }
+            document.querySelectorAll('.content-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(sectionId)?.classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('bg-anxiety-light','text-anxiety-dark','border-r-4','border-anxiety-dark'));
+            const activeBtn = document.getElementById('btn-'+sectionId);
+            if(activeBtn) activeBtn.classList.add('bg-anxiety-light','text-anxiety-dark','border-r-4','border-anxiety-dark');
+            if(window.innerWidth < 768) document.getElementById('sidebar').classList.add('hidden');
+            if(sectionId === 'overview') setTimeout(initAnxietyChart, 50);
+        }
+        function updateSidebarUI() {
+            const sections = ['home','overview','types','clinical','screening','management','nursing','prevention','flashcards','final_quiz_sec'];
+            sections.forEach(sec => {
+                const btn = document.getElementById('btn-'+sec);
+                if(!btn) return;
+                const lock = btn.querySelector('.fa-lock'), icon = btn.querySelector('.nav-icon');
+                if(unlockedSections.includes(sec) || sec==='home') { btn.classList.remove('locked-section'); if(lock) lock.classList.add('hidden'); if(icon) icon.classList.remove('hidden'); }
+                else { btn.classList.add('locked-section'); if(lock) lock.classList.remove('hidden'); if(icon) icon.classList.add('hidden'); }
+            });
+        }
+        function openQuiz(sectionId) { currentQuiz = sectionId; const qd = quizzes[sectionId]; if(!qd) return; document.getElementById('quiz-title').innerHTML = qd.title; const container = document.getElementById('quiz-questions-container'); container.innerHTML = ''; qd.questions.forEach((q, idx) => { let html = `<div class="bg-slate-50 p-4 rounded-xl mb-4"><p class="font-bold mb-3">${idx+1}. ${q.q}</p><div class="space-y-2">`; q.options.forEach((opt,oi) => { html += `<label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-white cursor-pointer"><input type="radio" name="q${idx}" value="${oi}" class="form-radio text-anxiety"><span>${opt}</span></label>`; }); html += `</div><div class="feedback-${idx} text-sm mt-2 hidden"></div></div>`; container.innerHTML += html; }); document.getElementById('quiz-submit-btn').classList.remove('hidden'); document.getElementById('quiz-result-container').classList.add('hidden'); document.getElementById('quiz-modal').classList.remove('hidden'); }
+        function closeQuiz() { document.getElementById('quiz-modal').classList.add('hidden'); }
+        function submitQuiz() {
+            const qd = quizzes[currentQuiz];
+            if(!qd) return;
+            let score = 0;
+            for(let i=0; i<qd.questions.length; i++) {
+                const sel = document.querySelector(`input[name="q${i}"]:checked`);
+                if(sel && parseInt(sel.value)===qd.questions[i].ans) score++;
+                const fbDiv = document.querySelector(`.feedback-${i}`);
+                if(fbDiv){
+                    fbDiv.classList.remove('hidden');
+                    const correctTxt = qd.questions[i].options[qd.questions[i].ans];
+                    if(sel && parseInt(sel.value)===qd.questions[i].ans) { fbDiv.innerHTML='<span class="text-green-700">✓ Correct</span>'; fbDiv.parentElement?.classList.add('quiz-feedback-correct'); }
+                    else { const selectedTxt = sel? qd.questions[i].options[parseInt(sel.value)]:"No answer"; fbDiv.innerHTML=`<span class="text-red-700">✗ Incorrect. Correct: ${correctTxt}. You answered: ${selectedTxt}</span>`; fbDiv.parentElement?.classList.add('quiz-feedback-wrong'); }
+                }
+            }
+            let percent = (score/qd.questions.length)*100;
+            let resultDiv = document.getElementById('quiz-result-container');
+            document.getElementById('quiz-submit-btn').classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+            if(percent>=75){
+                if(currentQuiz==='final_quiz'){ resultDiv.innerHTML=`<div class="text-green-600 text-4xl text-center">🎉 Excellent! Score ${score}/${qd.questions.length} (${percent}%)<br>You mastered Adolescent Anxiety</div><button onclick="closeQuiz()" class="mt-4 bg-anxiety text-white px-6 py-2 rounded-xl">Close</button>`; return; }
+                if(quizzes[currentQuiz].next && !unlockedSections.includes(quizzes[currentQuiz].next)) unlockedSections.push(quizzes[currentQuiz].next);
+                if(quizzes[currentQuiz].next === 'flashcards' && !unlockedSections.includes('final_quiz_sec')) unlockedSections.push('final_quiz_sec');
+                updateSidebarUI();
+                resultDiv.innerHTML=`<div class="text-green-600 text-3xl text-center">✅ Passed! (${score}/${qd.questions.length})</div><button onclick="closeQuiz(); showSection('${quizzes[currentQuiz].next}')" class="mt-4 bg-green-600 text-white px-6 py-2 rounded-xl">Unlock Next Section</button>`;
+            } else { resultDiv.innerHTML=`<div class="text-red-600 text-3xl text-center">❌ Failed: ${score}/${qd.questions.length} (${percent}%)<br>Need 75%</div><button onclick="openQuiz('${currentQuiz}')" class="mt-4 bg-slate-600 text-white px-6 py-2 rounded-xl">Try Again</button>`; }
+        }
+        function toggleRecallMode() { const active = !document.body.classList.contains('recall-mode'); const toggle=document.getElementById('recall-toggle'),knob=document.getElementById('recall-knob'); if(active){ document.body.classList.add('recall-mode'); toggle.classList.add('bg-anxiety-dark'); knob.classList.add('translate-x-6'); } else { document.body.classList.remove('recall-mode'); toggle.classList.remove('bg-anxiety-dark'); knob.classList.remove('translate-x-6'); } }
+        function toggleMobileMenu() { const s=document.getElementById('sidebar'); if(s.classList.contains('hidden')) s.classList.remove('hidden','flex','absolute','h-full','z-50'); else s.classList.add('hidden'); }
+        document.addEventListener('DOMContentLoaded', () => { updateSidebarUI(); document.querySelectorAll('.reveal-text').forEach(el => el.addEventListener('click', function(){ if(document.body.classList.contains('recall-mode')) this.classList.toggle('revealed'); })); });
+    </script>
+</body>
+</html>
